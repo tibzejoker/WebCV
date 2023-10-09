@@ -44,6 +44,10 @@ class GameHandler {
   }
 
   makeMouseClick(position) {
+    if (this.musicStarted == undefined) {
+      setTimeout(this.playMusic.bind(this), 100);
+      this.musicStarted = true;
+    }
     this.mouseClick = position;
   }
 
@@ -93,10 +97,230 @@ class GameHandler {
     this.createLifePack();
 
     this.drawLifePack(ctx);
+
+    this.drawScore(ctx);
+
+    this.drawMenu(ctx);
+  }
+
+  drawMenu(ctx) {
+    if (CVEnemies == undefined) {
+      return;
+    }
+    if (CVEnemies.length > 0) {
+      return;
+    }
+    ctx.fillStyle = "white";
+    ctx.globalAlpha = 1;
+    ctx.beginPath();
+    ctx.font = "50px Arial";
+    ctx.fillText("Thibaut LÉAUX", 100, 100);
+    ctx.font = "30px Arial";
+    ctx.fillText("Développeur mobile / fullstack ", 100, 150);
+    ctx.font = "20px Arial";
+
+    //cliquez ici pour voir mon cv
+    var posShootCv = new Position(160, 223);
+
+    ctx.fillStyle = "blue";
+    ctx.globalAlpha = 0.8;
+    ctx.beginPath();
+    ctx.arc(posShootCv.x, posShootCv.y, 15, 0, 2 * Math.PI);
+    ctx.fill();
+
+    //draw the bullet contact zone
+    ctx.fillStyle = "red";
+    ctx.beginPath();
+    var PosShoot = new Position(160, 192);
+
+    ctx.arc(PosShoot.x, PosShoot.y, 15, 0, 2 * Math.PI);
+    ctx.fill();
+
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = "white";
+    ctx.fillText("Tirez ici pour recommencer", 100, 200);
+    ctx.fillText("Tirez ici pour voir mon CV", 100, 230);
+
+    ctx.fillStyle = "green";
+    ctx.globalAlpha = 1;
+
+    //make a white rectangle around the text
+
+    if (this.score == enemiesNumber) {
+      ctx.fillStyle = "green";
+      ctx.globalAlpha = 1;
+      ctx.fillRect(90, 250, 500, 50);
+      ctx.fillStyle = "white";
+      ctx.fillText("Vous avez un score suffisant pour m'embaucher", 100, 280);
+    } else {
+      ctx.fillStyle = "red";
+      ctx.globalAlpha = 1;
+      ctx.fillRect(90, 250, 500, 50);
+      ctx.fillStyle = "white";
+      ctx.fillText(
+        "Vous n'avez pas un score suffisant pour m'embaucher",
+        100,
+        280
+      );
+    }
+
+    //test if there is a bullet in the menu
+    for (var i = 0; i < this.bullets.length; i++) {
+      var dx = this.bullets[i].x - PosShoot.x;
+      var dy = this.bullets[i].y - PosShoot.y;
+      var distance = Math.sqrt(dx * dx + dy * dy);
+      if (distance < 15) {
+        //collision
+        this.bullets.splice(i, 1);
+        //location reload to restart the game
+        location.reload();
+      }
+
+      //test for the cv
+      dx = this.bullets[i].x - posShootCv.x;
+      dy = this.bullets[i].y - posShootCv.y;
+      distance = Math.sqrt(dx * dx + dy * dy);
+      if (distance < 15) {
+        //collision
+        this.bullets.splice(i, 1);
+        //open /cv.pdf
+        window.open("cv.pdf");
+      }
+    }
+
+    ctx.closePath();
+  }
+  makeProceduralSound(freq, len) {
+    if (this.musicStarted == undefined || this.audioContext == undefined) {
+      return;
+    }
+    // create Oscillator node
+    var oscillator = this.audioContext.createOscillator();
+    oscillator.type = "square";
+    oscillator.frequency.setValueAtTime(freq, this.audioContext.currentTime); // value in hertz
+
+    oscillator.connect(this.audioContext.destination);
+    oscillator.start();
+    oscillator.stop(this.audioContext.currentTime + len);
+  }
+
+  playMusic() {
+    this.audioContext = new (window.AudioContext ||
+      window.webkitAudioContext)();
+    var spaceTheme = [
+      220, 220, 0, 220, 440, 0, 220, 0, 349, 523, 0, 440, 0, 349, 523, 523, 0,
+      523, 659, 0, 698, 523, 0, 415, 440, 349, 0, 220, 220, 220, 0, 220, 440, 0,
+      220, 0, 349, 523, 0, 440, 0, 349, 523, 523, 0, 523, 659, 0, 698, 523, 0,
+      415, 440, 349, 0, 220,
+    ];
+    var bassline = [
+      // corresponding bassline frequencies...
+      110, 0, 0, 110, 220, 0, 110, 0, 174, 261, 0, 220, 0, 174, 261, 261, 0,
+      261, 329, 0, 349, 261, 0, 207, 220, 174, 0, 110, 110, 0, 110, 220, 0, 110,
+      0, 174, 261, 0, 220, 0, 174, 261, 261, 0, 261, 329, 0, 349, 261, 0, 207,
+      220, 174, 0, 110,
+      // Ensure bassline length matches melody length
+    ];
+
+    var longNotes = [110, 174, 220, 174, 207, 220, 174, 110];
+
+    // Web Audio API
+    var tempo = 0.3;
+
+    const playMelody = () => {
+      spaceTheme.forEach((frequency, index) => {
+        var oscillator = this.audioContext.createOscillator();
+        oscillator.frequency.setValueAtTime(
+          frequency,
+          this.audioContext.currentTime
+        );
+
+        var gainNode = this.audioContext.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+
+        gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+        gainNode.gain.linearRampToValueAtTime(
+          1,
+          this.audioContext.currentTime + index * tempo + tempo * 0.1
+        );
+        gainNode.gain.linearRampToValueAtTime(
+          0,
+          this.audioContext.currentTime + (index + 1) * tempo
+        );
+
+        oscillator.start(this.audioContext.currentTime + index * tempo);
+        oscillator.stop(this.audioContext.currentTime + (index + 1) * tempo);
+      });
+      bassline.forEach((frequency, index) => {
+        var oscillator = this.audioContext.createOscillator();
+        oscillator.type = "sawtooth";
+        oscillator.frequency.setValueAtTime(
+          frequency,
+          this.audioContext.currentTime
+        );
+
+        var gainNode = this.audioContext.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+
+        gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+        gainNode.gain.linearRampToValueAtTime(
+          1,
+          this.audioContext.currentTime + index * tempo + tempo * 0.1
+        );
+        gainNode.gain.linearRampToValueAtTime(
+          0,
+          this.audioContext.currentTime + (index + 1) * tempo
+        );
+
+        oscillator.start(this.audioContext.currentTime + index * tempo);
+        oscillator.stop(this.audioContext.currentTime + (index + 1) * tempo);
+      });
+
+      longNotes.forEach((frequency, index) => {
+        var oscillator = this.audioContext.createOscillator();
+        oscillator.type = "sine";
+        oscillator.frequency.setValueAtTime(
+          frequency,
+          this.audioContext.currentTime
+        );
+
+        var gainNode = this.audioContext.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+
+        gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+        gainNode.gain.linearRampToValueAtTime(
+          1,
+          this.audioContext.currentTime + index * tempo * 6 + tempo * 6 * 0.1
+        );
+        gainNode.gain.linearRampToValueAtTime(
+          0,
+          this.audioContext.currentTime + (index + 1) * tempo * 6
+        );
+
+        oscillator.start(this.audioContext.currentTime + index * tempo * 6);
+        oscillator.stop(
+          this.audioContext.currentTime + (index + 1) * tempo * 6
+        );
+      });
+    };
+
+    // Play the melody once right away
+    playMelody();
+
+    // Then set interval to play it again at the right times
+    setInterval(playMelody, tempo * 1000 * spaceTheme.length);
+  }
+
+  drawScore(ctx) {
+    ctx.font = "15px Arial";
+    ctx.fillStyle = "white";
+    ctx.fillText("Score : " + this.score, 10, 30);
   }
 
   drawSmoke(ctx) {
-    console.log(this.smoke.length);
     for (var i = 0; i < this.smoke.length; i++) {
       ctx.fillStyle = this.smoke[i].color;
       ctx.globalAlpha = this.smoke[i].alpha * (this.smoke[i].lifeSpan / 10);
@@ -166,14 +390,47 @@ class GameHandler {
     }
   }
 
+  addEnemies() {
+    if (CVEnemies == undefined) {
+      CVEnemies = [];
+    }
+
+    if (AllEnemies == undefined || AllEnemies.length == 0) {
+      return;
+    }
+    var enemiesWithoutPosition = AllEnemies.filter(function (enemy) {
+      return enemy.position == undefined;
+    });
+
+    while (CVEnemies.length < 2 && enemiesWithoutPosition.length > 0) {
+      //add a random enemy
+      var randomEnemy = Math.floor(
+        Math.random() * enemiesWithoutPosition.length
+      );
+      var enemy = enemiesWithoutPosition[randomEnemy];
+      CVEnemies.push(enemy);
+      enemy.position = new Position(
+        window.innerWidth,
+        Math.random() * window.innerHeight
+      );
+      enemiesWithoutPosition = AllEnemies.filter(function (enemy) {
+        return enemy.position == undefined;
+      });
+    }
+  }
   handleEnemies() {
+    // if (CVEnemies == undefined) {
+    //   return;
+    // }
+    this.addEnemies();
     for (var i = 0; i < CVEnemies.length; i++) {
-      //if position is not defined we create a random position
+      //if position is not defined we place the enemies at the right of the screen
       if (CVEnemies[i].position == undefined) {
         CVEnemies[i].position = new Position(
-          Math.random() * window.innerWidth,
+          window.innerWidth,
           Math.random() * window.innerHeight
         );
+        console.log(CVEnemies[i].position);
       }
 
       //move the enemy towards the ship
@@ -192,9 +449,17 @@ class GameHandler {
         //collision
         if (smallShip.life > 0) {
           smallShip.life -= 1;
+          this.makeProceduralSound(500, 0.1);
         }
         if (smallShip.life <= 0) {
-          this.stop();
+          // this.stop();
+          //alert with a button to restart
+          // alert("Game Over");
+          AllEnemies = [];
+          CVEnemies = [];
+          smallShip.life = 1;
+          //restart the game
+          // location.reload();
         }
       }
 
@@ -208,21 +473,55 @@ class GameHandler {
             //collision
             CVEnemies[i].life -= 10;
             this.bullets[j].alpha = 0;
+            this.makeProceduralSound(1000, 0.1);
+
             if (CVEnemies[i].life <= 0) {
-              CVEnemies.splice(i, 1);
               //draw explosion
 
-              var smoke = {
-                x: CVEnemies[i].position.x,
-                y: CVEnemies[i].position.y,
-                dx: Math.cos(angle) * -1,
-                dy: Math.sin(angle) * -1,
-                radius: 20,
-                alpha: 1,
-                color: "yellow",
-                lifeSpan: 10,
-              };
-              this.smoke.push(smoke);
+              var position = new Position(
+                structuredClone(CVEnemies[i].position.x),
+                structuredClone(CVEnemies[i].position.y)
+              );
+
+              //push multiple smoke
+              for (var k = 0; k < 10; k++) {
+                var explosionColorsWithSmoke = [
+                  "red",
+                  "orange",
+                  "yellow",
+                  "grey",
+                  "grey",
+                  "grey",
+                  "grey",
+                  "grey",
+                ];
+                var smoke = {
+                  x: position.x + (Math.random() - 0.5) * 10,
+                  y: position.y + (Math.random() - 0.5) * 10,
+                  dx: 0,
+                  dy: 0,
+                  radius: CVEnemies[i].size,
+                  alpha: Math.random(),
+                  color:
+                    explosionColorsWithSmoke[
+                      Math.floor(
+                        Math.random() * explosionColorsWithSmoke.length
+                      )
+                    ],
+                  lifeSpan: 40,
+                };
+                this.smoke.push(smoke);
+              }
+              CVEnemies.splice(i, 1);
+              this.score += 1;
+
+              this.makeProceduralSound(100, 0.1);
+              //add score
+
+              //if enemies are all dead we delete all the bullets
+              if (CVEnemies.length == 0) {
+                this.bullets = [];
+              }
             }
           }
         }
@@ -231,14 +530,10 @@ class GameHandler {
   }
 
   drawEnemies(ctx) {
+    if (CVEnemies == undefined) {
+      return;
+    }
     for (var i = 0; i < CVEnemies.length; i++) {
-      //if position is not defined we create a random position
-      if (CVEnemies[i].position == undefined) {
-        CVEnemies[i].position = new Position(
-          Math.random() * window.innerWidth,
-          Math.random() * window.innerHeight
-        );
-      }
       ctx.fillStyle = CVEnemies[i].color;
       ctx.globalAlpha = 1;
       ctx.beginPath();
@@ -279,7 +574,6 @@ class GameHandler {
   }
 
   drawBullets(ctx) {
-    // console.log(this.bullets.length);
     for (var i = 0; i < this.bullets.length; i++) {
       ctx.fillStyle = this.bullets[i].color;
       ctx.globalAlpha = this.bullets[i].alpha;
@@ -332,6 +626,7 @@ class GameHandler {
       };
       this.bullets.push(bullet);
       this.mouseClick = undefined;
+      this.makeProceduralSound(1200, 0.1);
     }
   }
 
@@ -391,7 +686,7 @@ class GameHandler {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
 
     //draw a mouse target at the current mouse position
-    ctx.fillStyle = "red";
+    ctx.fillStyle = "white";
     ctx.fillRect(this.mousePos.x, this.mousePos.y, 3, 3);
     ctx.closePath();
 

@@ -9,10 +9,10 @@ var smallShip = {
   color: "white",
   // Assuming (0,0) as the center of the ship
   shape: [
-    [-4, -4], // Top left
-    [4, 0], // Top right
-    [4, 0], // Bottom right
-    [-4, 4], // Bottom left
+    [-10, -10], // Top left
+    [10, 0], // Top right
+    [10, 0], // Bottom right
+    [-10, 10], // Bottom left
   ],
   position: { x: 20, y: 20 }, // Assuming Position is an object with x, y properties
 };
@@ -95,21 +95,94 @@ var ageDifYear =
 ageDifYear = Math.trunc(ageDifYear * 100) / 100;
 
 //now we add elements of my resume to the game as enemies
-var CVEnemies = [
-  // new Enemy("Thibaut LÉAUX", 100, 10, 1, "blue"),
-  // new Enemy("Age " + ageDifYear, 25, 4, 0.5, "blue"),
-  new Enemy("test", 25, 4, 0.5, "blue"),
-];
+var AllEnemies = [
+  new Enemy("Thibaut LÉAUX", 1000, 10, 1, "blue"),
+  new Enemy("Age " + ageDifYear, 25, 4, 0.5, "blue"),
 
-var CVBlocs = [
+  new Enemy("Anglais avancé", 10, 4, 0.5 + Math.random() / 3, "#00ffAA"),
   new Enemy(
-    "Création d’applications et Webapps en Flutter",
+    "Applications, Webapps Flutter",
     100,
     10,
-    0,
-    "blue"
+    0.1 + Math.random() / 10,
+    "#" + Math.floor(Math.random() * 16777215).toString(16)
+  ),
+  new Enemy(
+    "Développement C#, C++ et JS",
+    100,
+    10,
+    0.1 + Math.random() / 10,
+    "#" + Math.floor(Math.random() * 16777215).toString(16)
+  ),
+  new Enemy(
+    "Projets complexes",
+    100,
+    10,
+    0.1 + Math.random() / 10,
+    "#" + Math.floor(Math.random() * 16777215).toString(16)
+  ),
+  new Enemy(
+    "Fullstack front back NodeJS, PHP ou Springboot",
+    100,
+    15,
+    0.8 + Math.random() / 10,
+    "#" + Math.floor(Math.random() * 16777215).toString(16)
+  ),
+  new Enemy(
+    "C++ et microcontrôleurs (Arduino, STM32, Raspberry Pi)",
+    100,
+    12,
+    0.4 + Math.random() / 10,
+    "#" + Math.floor(Math.random() * 16777215).toString(16)
+  ),
+  new Enemy(
+    "Python et robotique (ROS et Pepper Aldebaran)",
+    100,
+    17,
+    0.5 + Math.random() / 10,
+    "#" + Math.floor(Math.random() * 16777215).toString(16)
+  ),
+  new Enemy(
+    "Git Jetbrains, GitlabCI",
+    150,
+    20,
+    0.1 + Math.random() / 10,
+    "#" + Math.floor(Math.random() * 16777215).toString(16)
+  ),
+  new Enemy(
+    "Conception/Pilotage Drone FPV",
+    Math.random() * 40,
+    Math.random() * 40,
+    Math.random() / 2,
+    "#" + Math.floor(Math.random() * 16777215).toString(16)
+  ),
+  new Enemy(
+    "NodeJS, PHP ou Springboot",
+    Math.random() * 40,
+    Math.random() * 40,
+    Math.random() / 2,
+    "#" + Math.floor(Math.random() * 16777215).toString(16)
+  ),
+  new Enemy(
+    "Flutter",
+    Math.random() * 80 + 50,
+    Math.random() * 40,
+    Math.random() / 2,
+    "#" + Math.floor(Math.random() * 16777215).toString(16)
+  ),
+  new Enemy(
+    "React Native",
+    Math.random() * 20,
+    Math.random() * 20,
+    Math.random() / 2,
+    "#" + Math.floor(Math.random() * 16777215).toString(16)
   ),
 ];
+
+var enemiesNumber = AllEnemies.length;
+
+var CVEnemies;
+
 GameHandler = new GameHandler();
 function resizeCanvasToDisplaySize(canvas) {
   // get the display size of the canvas.
